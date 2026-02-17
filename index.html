@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#2196f3">
+<title>国旗クイズ完全版</title>
+
+<style>
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  background:linear-gradient(135deg,#4e73df,#1cc88a);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.app{
+  background:white;
+  width:95%;
+  max-width:420px;
+  padding:20px;
+  border-radius:25px;
+  box-shadow:0 15px 30px rgba(0,0,0,0.2);
+  text-align:center;
+}
+
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  font-size:12px;
+  margin-bottom:5px;
+}
+
+.timer{ color:#e74a3b; font-weight:bold; }
+
+.flag{
+  width:200px;
+  margin:10px 0;
+  border-radius:12px;
+  box-shadow:0 5px 15px rgba(0,0,0,0.2);
+}
+
+input{
+  width:90%;
+  padding:10px;
+  font-size:16px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  margin-bottom:8px;
+}
+
+button{
+  width:100%;
+  padding:8px;
+  font-size:14px;
+  border:none;
+  border-radius:12px;
+  background:#4e73df;
+  color:white;
+  margin-top:6px;
+  cursor:pointer;
+}
+
+button.skip{ background:#858796; }
+button.pause{ background:#e74a3b; }
+button.review{ background:#f6c23e; color:black; }
+
+.result{
+  font-size:16px;
+  min-height:35px;
+  margin-top:8px;
+}
+
+select{
+  width:100%;
+  padding:6px;
+  border-radius:10px;
+  margin-top:6px;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+<div class="topbar">
+<div>スコア:<span id="score">0</span></div>
+<div>🏆:<span id="highScore">0</span></div>
+<div>連続:<span id="combo">0</span></div>
+<div>復習:<span id="reviewCount">0</span></div>
+<div class="timer">⏱<span id="time">10</span></div>
+</div>
+
+<div>正答率: <span id="accuracy">0</span>%</div>
+
+<select id="continentSelect" onchange="changeContinent()">
+<option value="all">全世界</option>
+<option value="asia">アジア</option>
+<option value="europe">ヨーロッパ</option>
+<option value="africa">アフリカ</option>
+<option value="northamerica">北米</option>
+<option value="southamerica">南米</option>
+<option value="oceania">オセアニア</option>
+</select>
+
+<img id="flag" class="flag">
+
+<input type="text" id="answer" placeholder="国名を入力">
+
+<button onclick="checkAnswer()">答える</button>
+<button class="skip" onclick="skipQuestion()">次へ</button>
+<button class="pause" onclick="togglePause()">⏸停止/再開</button>
+<button class="review" onclick="toggleReviewMode()">復習切替</button>
+
+<div id="result" class="result"></div>
+
+<script>
+
+const countries = [
+{jp:"アイスランド", en:"iceland", code:"is", continent:"europe"},
+{jp:"アイルランド", en:"ireland", code:"ie", continent:"europe"},
+{jp:"アゼルバイジャン", en:"azerbaijan", code:"az", continent:"asia"},
+{jp:"アフガニスタン", en:"afghanistan", code:"af", continent:"asia"},
+{jp:"アメリカ", en:"united states", code:"us", continent:"northamerica"},
+{jp:"アラブ首長国連邦", en:"united arab emirates", code:"ae", continent:"asia"},
+{jp:"アルジェリア", en:"algeria", code:"dz", continent:"africa"},
+{jp:"アルゼンチン", en:"argentina", code:"ar", continent:"southamerica"},
+{jp:"アルバニア", en:"albania", code:"al", continent:"europe"},
+{jp:"アルメニア", en:"armenia", code:"am", continent:"asia"},
+{jp:"アンゴラ", en:"angola", code:"ao", continent:"africa"},
+{jp:"アンティグア・バーブーダ", en:"antigua and barbuda", code:"ag", continent:"northamerica"},
+{jp:"アンドラ", en:"andorra", code:"ad", continent:"europe"},
+{jp:"イエメン", en:"yemen", code:"ye", continent:"asia"},
+{jp:"イギリス", en:"united kingdom", code:"gb", continent:"europe"},
+{jp:"イスラエル", en:"israel", code:"il", continent:"asia"},
+{jp:"イタリア", en:"italy", code:"it", continent:"europe"},
+{jp:"イラン", en:"iran", code:"ir", continent:"asia"},
+{jp:"インド", en:"india", code:"in", continent:"asia"},
+{jp:"インドネシア", en:"indonesia", code:"id", continent:"asia"},
+{jp:"ウガンダ", en:"uganda", code:"ug", continent:"africa"},
+{jp:"ウクライナ", en:"ukraine", code:"ua", continent:"europe"},
+{jp:"ウズベキスタン", en:"uzbekistan", code:"uz", continent:"asia"},
+{jp:"ウルグアイ", en:"uruguay", code:"uy", continent:"southamerica"},
+{jp:"エクアドル", en:"ecuador", code:"ec", continent:"southamerica"},
+{jp:"エジプト", en:"egypt", code:"eg", continent:"africa"},
+{jp:"エストニア", en:"estonia", code:"ee", continent:"europe"},
+{jp:"エスワティニ", en:"eswatini", code:"sz", continent:"africa"},
+{jp:"エチオピア", en:"ethiopia", code:"et", continent:"africa"},
+{jp:"エリトリア", en:"eritrea", code:"er", continent:"africa"},
+{jp:"エルサルバドル", en:"el salvador", code:"sv", continent:"northamerica"},
+{jp:"オーストラリア", en:"australia", code:"au", continent:"oceania"},
+{jp:"オーストリア", en:"austria", code:"at", continent:"europe"},
+{jp:"オマーン", en:"oman", code:"om", continent:"asia"},
+{jp:"オランダ", en:"netherlands", code:"nl", continent:"europe"},
+{jp:"ガーナ", en:"ghana", code:"gh", continent:"africa"},
+{jp:"カーボベルデ", en:"cape verde", code:"cv", continent:"africa"},
+{jp:"ガイアナ", en:"guyana", code:"gy", continent:"southamerica"},
+{jp:"カザフスタン", en:"kazakhstan", code:"kz", continent:"asia"},
+{jp:"カタール", en:"qatar", code:"qa", continent:"asia"},
+{jp:"カナダ", en:"canada", code:"ca", continent:"northamerica"},
+{jp:"ガボン", en:"gabon", code:"ga", continent:"africa"},
+{jp:"カメルーン", en:"cameroon", code:"cm", continent:"africa"},
+{jp:"ガンビア", en:"gambia", code:"gm", continent:"africa"},
+{jp:"カンボジア", en:"cambodia", code:"kh", continent:"asia"},
+{jp:"ギニア", en:"guinea", code:"gn", continent:"africa"},
+{jp:"ギニアビサウ", en:"guinea-bissau", code:"gw", continent:"africa"},
+{jp:"キプロス", en:"cyprus", code:"cy", continent:"asia"},
+{jp:"ギリシャ", en:"greece", code:"gr", continent:"europe"},
+{jp:"キリバス", en:"kiribati", code:"ki", continent:"oceania"},
+{jp:"キルギス", en:"kyrgyzstan", code:"kg", continent:"asia"},
+{jp:"グアテマラ", en:"guatemala", code:"gt", continent:"northamerica"},
+{jp:"クウェート", en:"kuwait", code:"kw", continent:"asia"},
+{jp:"グレナダ", en:"grenada", code:"gd", continent:"northamerica"},
+{jp:"クロアチア", en:"croatia", code:"hr", continent:"europe"},
+{jp:"ケニア", en:"kenya", code:"ke", continent:"africa"},
+{jp:"コスタリカ", en:"costa rica", code:"cr", continent:"northamerica"},
+{jp:"コモロ", en:"comoros", code:"km", continent:"africa"},
+{jp:"コロンビア", en:"colombia", code:"co", continent:"southamerica"},
+{jp:"コンゴ共和国", en:"republic of the congo", code:"cg", continent:"africa"},
+{jp:"コンゴ民主共和国", en:"democratic republic of the congo", code:"cd", continent:"africa"},
+{jp:"サウジアラビア", en:"saudi arabia", code:"sa", continent:"asia"},
+{jp:"サモア", en:"samoa", code:"ws", continent:"oceania"},
+{jp:"サントメ・プリンシペ", en:"sao tome and principe", code:"st", continent:"africa"},
+{jp:"ザンビア", en:"zambia", code:"zm", continent:"africa"},
+{jp:"サンマリノ", en:"san marino", code:"sm", continent:"europe"},
+{jp:"シエラレオネ", en:"sierra leone", code:"sl", continent:"africa"},
+{jp:"ジブチ", en:"djibouti", code:"dj", continent:"africa"},
+{jp:"ジャマイカ", en:"jamaica", code:"jm", continent:"northamerica"},
+{jp:"ジョージア", en:"georgia", code:"ge", continent:"asia"},
+{jp:"シリア", en:"syria", code:"sy", continent:"asia"},
+{jp:"シンガポール", en:"singapore", code:"sg", continent:"asia"},
+{jp:"ジンバブエ", en:"zimbabwe", code:"zw", continent:"africa"},
+{jp:"スイス", en:"switzerland", code:"ch", continent:"europe"},
+{jp:"スウェーデン", en:"sweden", code:"se", continent:"europe"},
+{jp:"スーダン", en:"sudan", code:"sd", continent:"africa"},
+{jp:"スペイン", en:"spain", code:"es", continent:"europe"},
+{jp:"スリナム", en:"suriname", code:"sr", continent:"southamerica"},
+{jp:"スリランカ", en:"sri lanka", code:"lk", continent:"asia"},
+{jp:"スロバキア", en:"slovakia", code:"sk", continent:"europe"},
+{jp:"スロベニア", en:"slovenia", code:"si", continent:"europe"},
+{jp:"セーシェル", en:"seychelles", code:"sc", continent:"africa"},
+{jp:"セネガル", en:"senegal", code:"sn", continent:"africa"},
+{jp:"セルビア", en:"serbia", code:"rs", continent:"europe"},
+{jp:"セントクリストファー・ネイビス", en:"saint kitts and nevis", code:"kn", continent:"northamerica"},
+{jp:"セントビンセントおよびグレナディーン諸島", en:"saint vincent and the grenadines", code:"vc", continent:"northamerica"},
+{jp:"セントルシア", en:"saint lucia", code:"lc", continent:"northamerica"},
+{jp:"ソマリア", en:"somalia", code:"so", continent:"africa"},
+{jp:"ソロモン諸島", en:"solomon islands", code:"sb", continent:"oceania"},
+{jp:"タイ", en:"thailand", code:"th", continent:"asia"},
+{jp:"タジキスタン", en:"tajikistan", code:"tj", continent:"asia"},
+{jp:"タンザニア", en:"tanzania", code:"tz", continent:"africa"},
+{jp:"チェコ", en:"czech republic", code:"cz", continent:"europe"},
+{jp:"チャド", en:"chad", code:"td", continent:"africa"},
+{jp:"チュニジア", en:"tunisia", code:"tn", continent:"africa"},
+{jp:"チリ", en:"chile", code:"cl", continent:"southamerica"},
+{jp:"ツバル", en:"tuvalu", code:"tv", continent:"oceania"},
+{jp:"デンマーク", en:"denmark", code:"dk", continent:"europe"},
+{jp:"ドイツ", en:"germany", code:"de", continent:"europe"},
+{jp:"トーゴ", en:"togo", code:"tg", continent:"africa"},
+{jp:"ドミニカ共和国", en:"dominican republic", code:"do", continent:"northamerica"},
+{jp:"ドミニカ国", en:"dominica", code:"dm", continent:"northamerica"},
+{jp:"トリニダード・トバゴ", en:"trinidad and tobago", code:"tt", continent:"northamerica"},
+{jp:"トルクメニスタン", en:"turkmenistan", code:"tm", continent:"asia"},
+{jp:"トルコ", en:"turkey", code:"tr", continent:"asia"},
+{jp:"トンガ", en:"tonga", code:"to", continent:"oceania"},
+{jp:"ナイジェリア", en:"nigeria", code:"ng", continent:"africa"},
+{jp:"ナウル", en:"nauru", code:"nr", continent:"oceania"},
+{jp:"ナミビア", en:"namibia", code:"na", continent:"africa"},
+{jp:"ニカラグア", en:"nicaragua", code:"ni", continent:"northamerica"},
+{jp:"ニジェール", en:"niger", code:"ne", continent:"africa"},
+{jp:"ニュージーランド", en:"new zealand", code:"nz", continent:"oceania"},
+{jp:"ネパール", en:"nepal", code:"np", continent:"asia"},
+{jp:"ノルウェー", en:"norway", code:"no", continent:"europe"},
+{jp:"バーレーン", en:"bahrain", code:"bh", continent:"asia"},
+{jp:"ハイチ", en:"haiti", code:"ht", continent:"northamerica"},
+{jp:"パキスタン", en:"pakistan", code:"pk", continent:"asia"},
+{jp:"バチカン", en:"vatican city", code:"va", continent:"europe"},
+{jp:"パナマ", en:"panama", code:"pa", continent:"northamerica"},
+{jp:"バヌアツ", en:"vanuatu", code:"vu", continent:"oceania"},
+{jp:"バハマ", en:"bahamas", code:"bs", continent:"northamerica"},
+{jp:"パプアニューギニア", en:"papua new guinea", code:"pg", continent:"oceania"},
+{jp:"パラオ", en:"palau", code:"pw", continent:"oceania"},
+{jp:"パラグアイ", en:"paraguay", code:"py", continent:"southamerica"},
+{jp:"バルバドス", en:"barbados", code:"bb", continent:"northamerica"},
+{jp:"ハンガリー", en:"hungary", code:"hu", continent:"europe"},
+{jp:"バングラデシュ", en:"bangladesh", code:"bd", continent:"asia"},
+{jp:"フィジー", en:"fiji", code:"fj", continent:"oceania"},
+{jp:"フィリピン", en:"philippines", code:"ph", continent:"asia"},
+{jp:"フィンランド", en:"finland", code:"fi", continent:"europe"},
+{jp:"ブータン", en:"bhutan", code:"bt", continent:"asia"},
+{jp:"ブラジル", en:"brazil", code:"br", continent:"southamerica"},
+{jp:"フランス", en:"france", code:"fr", continent:"europe"},
+{jp:"ブルガリア", en:"bulgaria", code:"bg", continent:"europe"},
+{jp:"ブルキナファソ", en:"burkina faso", code:"bf", continent:"africa"},
+{jp:"ブルネイ", en:"brunei", code:"bn", continent:"asia"},
+{jp:"ブルンジ", en:"burundi", code:"bi", continent:"africa"},
+{jp:"ベトナム", en:"vietnam", code:"vn", continent:"asia"},
+{jp:"ベナン", en:"benin", code:"bj", continent:"africa"},
+{jp:"ベネズエラ", en:"venezuela", code:"ve", continent:"southamerica"},
+{jp:"ベラルーシ", en:"belarus", code:"by", continent:"europe"},
+{jp:"ベリーズ", en:"belize", code:"bz", continent:"northamerica"},
+{jp:"ペルー", en:"peru", code:"pe", continent:"southamerica"},
+{jp:"ベルギー", en:"belgium", code:"be", continent:"europe"},
+{jp:"ポーランド", en:"poland", code:"pl", continent:"europe"},
+{jp:"ボスニア・ヘルツェゴビナ", en:"bosnia and herzegovina", code:"ba", continent:"europe"},
+{jp:"ボツワナ", en:"botswana", code:"bw", continent:"africa"},
+{jp:"ボリビア", en:"bolivia", code:"bo", continent:"southamerica"},
+{jp:"ポルトガル", en:"portugal", code:"pt", continent:"europe"},
+{jp:"ホンジュラス", en:"honduras", code:"hn", continent:"northamerica"},
+{jp:"マーシャル諸島", en:"marshall islands", code:"mh", continent:"oceania"},
+{jp:"マダガスカル", en:"madagascar", code:"mg", continent:"africa"},
+{jp:"マラウイ", en:"malawi", code:"mw", continent:"africa"},
+{jp:"マリ", en:"mali", code:"ml", continent:"africa"},
+{jp:"マルタ", en:"malta", code:"mt", continent:"europe"},
+{jp:"マレーシア", en:"malaysia", code:"my", continent:"asia"},
+{jp:"ミクロネシア", en:"micronesia", code:"fm", continent:"oceania"},
+{jp:"ミャンマー", en:"myanmar", code:"mm", continent:"asia"},
+{jp:"メキシコ", en:"mexico", code:"mx", continent:"northamerica"},
+{jp:"モーリシャス", en:"mauritius", code:"mu", continent:"africa"},
+{jp:"モーリタニア", en:"mauritania", code:"mr", continent:"africa"},
+{jp:"モザンビーク", en:"mozambique", code:"mz", continent:"africa"},
+{jp:"モナコ", en:"monaco", code:"mc", continent:"europe"},
+{jp:"モルディブ", en:"maldives", code:"mv", continent:"asia"},
+{jp:"モルドバ", en:"moldova", code:"md", continent:"europe"},
+{jp:"モロッコ", en:"morocco", code:"ma", continent:"africa"},
+{jp:"モンテネグロ", en:"montenegro", code:"me", continent:"europe"},
+{jp:"ヨルダン", en:"jordan", code:"jo", continent:"asia"},
+{jp:"ラオス", en:"laos", code:"la", continent:"asia"},
+{jp:"ラトビア", en:"latvia", code:"lv", continent:"europe"},
+{jp:"リトアニア", en:"lithuania", code:"lt", continent:"europe"},
+{jp:"リビア", en:"libya", code:"ly", continent:"africa"},
+{jp:"リヒテンシュタイン", en:"liechtenstein", code:"li", continent:"europe"},
+{jp:"リベリア", en:"liberia", code:"lr", continent:"africa"},
+{jp:"ルーマニア", en:"romania", code:"ro", continent:"europe"},
+{jp:"ルクセンブルク", en:"luxembourg", code:"lu", continent:"europe"},
+{jp:"ルワンダ", en:"rwanda", code:"rw", continent:"africa"},
+{jp:"レソト", en:"lesotho", code:"ls", continent:"africa"},
+{jp:"レバノン", en:"lebanon", code:"lb", continent:"asia"},
+{jp:"ロシア", en:"russia", code:"ru", continent:"europe"},
+{jp:"韓国", en:"south korea", code:"kr", continent:"asia"},
+{jp:"赤道ギニア", en:"equatorial guinea", code:"gq", continent:"africa"},
+{jp:"中央アフリカ", en:"centralafrican republic", code:"cf", continent:"africa"},
+{jp:"中国", en:"china", code:"cn", continent:"asia"},
+{jp:"東ティモール", en:"east timor", code:"tl", continent:"asia"},
+{jp:"南アフリカ", en:"southafrica", code:"za", continent:"africa"},
+{jp:"南スーダン", en:"south sudan", code:"ss", continent:"africa"},
+{jp:"日本", en:"japan", code:"jp", continent:"asia"},
+{jp:"北マケドニア", en:"north macedonia", code:"mk", continent:"europe"},
+{jp:"北朝鮮", en:"north korea", code:"kp", continent:"asia"},
+
+];
+
+let current;
+let score=0;
+let combo=0;
+let timeLeft=10;
+let timer;
+let wrongList=[];
+let reviewMode=false;
+let paused=false;
+let totalAnswers=0;
+let selectedContinent="all";
+
+function normalize(t){ return t.trim().toLowerCase(); }
+
+function updateUI(){
+document.getElementById("score").textContent=score;
+document.getElementById("combo").textContent=combo;
+document.getElementById("reviewCount").textContent=wrongList.length;
+document.getElementById("accuracy").textContent=
+totalAnswers?Math.floor(score/totalAnswers*100):0;
+updateHighScore();
+}
+
+function updateHighScore(){
+let hs=localStorage.getItem("highScore")||0;
+if(score>hs){localStorage.setItem("highScore",score);}
+document.getElementById("highScore").textContent=
+localStorage.getItem("highScore")||0;
+}
+
+function startTimer(){
+if(paused)return;
+document.getElementById("time").textContent=timeLeft;
+timer=setInterval(()=>{
+if(!paused){
+timeLeft--;
+document.getElementById("time").textContent=timeLeft;
+if(timeLeft<=0){clearInterval(timer);skipQuestion(true);}
+}
+},1000);
+}
+
+function nextQuestion(){
+clearInterval(timer);
+paused=false;
+timeLeft=10;
+
+let source;
+if(reviewMode && wrongList.length>0){
+source=wrongList;
+}else{
+source=countries.filter(c=>
+selectedContinent==="all"||c.continent===selectedContinent);
+}
+
+current=source[Math.floor(Math.random()*source.length)];
+document.getElementById("flag").src=
+"https://flagcdn.com/w320/"+current.code+".png";
+
+document.getElementById("answer").value="";
+document.getElementById("result").textContent="";
+startTimer();
+}
+
+function checkAnswer(){
+clearInterval(timer);
+totalAnswers++;
+
+if(
+normalize(document.getElementById("answer").value)===normalize(current.jp)||
+normalize(document.getElementById("answer").value)===normalize(current.en)
+){
+score++;combo++;
+wrongList=wrongList.filter(c=>c.code!==current.code);
+document.getElementById("correctSound").play();
+show("○ 正解！","green");
+}else{
+combo=0;
+addWrong();
+document.getElementById("wrongSound").play();
+show("× 正解:"+current.jp,"red");
+}
+updateUI();
+setTimeout(nextQuestion,1500);
+}
+
+function skipQuestion(timeup=false){
+clearInterval(timer);
+combo=0;
+addWrong();
+show("正解:"+current.jp,"red");
+updateUI();
+setTimeout(nextQuestion,1500);
+}
+
+function addWrong(){
+if(!wrongList.some(c=>c.code===current.code)){
+wrongList.push(current);
+}
+}
+
+function show(t,color){
+let r=document.getElementById("result");
+r.textContent=t;
+r.style.color=color;
+}
+
+function togglePause(){
+paused=!paused;
+if(!paused)startTimer();
+}
+
+function toggleReviewMode(){
+reviewMode=!reviewMode;
+nextQuestion();
+}
+
+function changeContinent(){
+selectedContinent=
+document.getElementById("continentSelect").value;
+nextQuestion();
+}
+
+updateHighScore();
+nextQuestion();
+
+</script>
+
+<audio id="correctSound"
+src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+<audio id="wrongSound"
+src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-buzz-950.mp3"></audio>
+
+</div>
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+</body>
+</html>
