@@ -128,7 +128,7 @@ if(
   addWrong();
 
   playWrong();
-  show("× 正解:"+current.jp,"red");
+  show("× 正解: " + current.jp + " / " + current.en, "red");
 }
 
 updateUI();
@@ -142,7 +142,7 @@ clearInterval(timer);
 }
 combo=0;
 addWrong();
-show("正解:"+current.jp,"red");
+show("正解: " + current.jp + " / " + current.en, "red");
 updateUI();
 setTimeout(nextQuestion,1500);
 }
