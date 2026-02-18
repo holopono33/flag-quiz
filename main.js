@@ -1,3 +1,10 @@
+let audioCtx;
+
+document.addEventListener("click", () => {
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+});
 let gameMode = "normal";
 let wrongAnswers = [];
 let current;
@@ -97,7 +104,7 @@ if(
   score++;
   combo++;
 
-    if(combo === 5){
+    if(combo === 3){
     document.getElementById("combo").classList.add("comboGlow");
     setTimeout(()=>{
       document.getElementById("combo").classList.remove("comboGlow");
@@ -113,14 +120,14 @@ if(
 
   wrongList = wrongList.filter(c => c.code !== current.code);
 
-  document.getElementById("correctSound").play();
+  playCorrect();
   show("○ 正解！","green");
 
 }else{
   combo = 0;
   addWrong();
 
-  document.getElementById("wrongSound").play();
+  playWrong();
   show("× 正解:"+current.jp,"red");
 }
 
@@ -279,7 +286,47 @@ function updateTimeAttackDisplay(){
   document.getElementById("taRanking").textContent = ranking;
 }
 
+function playCorrect(){
+  if(!audioCtx) return;
 
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.type = "sine";
+  osc.frequency.value = 900;
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(
+    0.001, audioCtx.currentTime + 0.2
+  );
+
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.2);
+}
+
+function playWrong(){
+  if(!audioCtx) return;
+
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.type = "square";
+  osc.frequency.value = 200;
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(
+    0.001, audioCtx.currentTime + 0.4
+  );
+
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.4);
+}
 
 
 updateHighScore();
