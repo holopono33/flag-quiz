@@ -23,6 +23,12 @@ let timeAttackTimer;
 
 function normalize(t){ return t.trim().toLowerCase(); }
 
+function toHiragana(str){
+  return str.replace(/[\u30a1-\u30f6]/g, function(match){
+    return String.fromCharCode(match.charCodeAt(0) - 0x60);
+  });
+}
+
 function updateUI(){
 document.getElementById("score").textContent=score;
 document.getElementById("combo").textContent=combo;
@@ -97,10 +103,28 @@ totalAnswers++;
 
 let input = normalize(document.getElementById("answer").value);
 
+let jp = normalize(current.jp);
+let en = normalize(current.en);
+let correct = false;
+
 if(
-  input === normalize(current.jp) ||
-  input === normalize(current.en)
+  input === jp ||
+  input === en ||
+  input === toHiragana(jp)
 ){
+correct = true;
+}
+
+if(current.aliases){
+  current.aliases.forEach(a=>{
+    if(input === normalize(a)){
+      correct = true;
+    }
+  });
+}
+
+if(correct){
+
   score++;
   combo++;
 
