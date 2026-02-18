@@ -85,37 +85,36 @@ select{
 </head>
 <body>
 
-<div class="app">
+<!-- 🏠 ホーム画面 -->
+<div id="homeScreen">
+  <h1>🌍 世界196カ国 国旗クイズ</h1>
 
-<div class="topbar">
-<div>スコア:<span id="score">0</span></div>
-<div>🏆:<span id="highScore">0</span></div>
-<div>連続:<span id="combo">0</span></div>
-<div>復習:<span id="reviewCount">0</span></div>
-<div class="timer">⏱<span id="time">10</span></div>
+  <button onclick="startNormal()">▶ 通常モード</button>
+  <button onclick="startContinent()">🌎 大陸別モード</button>
+  <button onclick="startReview()">🔁 復習モード</button>
+  <button onclick="startTimeAttack()">🏆 1分チャレンジ</button>
 </div>
 
-<div>正答率: <span id="accuracy">0</span>%</div>
 
-<select id="continentSelect" onchange="changeContinent()">
-<option value="all">全世界</option>
-<option value="asia">アジア</option>
-<option value="europe">ヨーロッパ</option>
-<option value="africa">アフリカ</option>
-<option value="northamerica">北米</option>
-<option value="southamerica">南米</option>
-<option value="oceania">オセアニア</option>
-</select>
+<!-- 🎮 ゲーム画面 -->
+<div id="gameScreen" style="display:none;">
 
-<img id="flag" class="flag">
+  <button onclick="goHome()">← ホームに戻る</button>
 
-<div id="result" class="result"></div>
-<input type="text" id="answer" placeholder="国名を入力">
+  <h2 id="modeTitle"></h2>
 
-<button onclick="checkAnswer()">答える</button>
-<button class="skip" onclick="skipQuestion()">次へ</button>
-<button class="pause" onclick="togglePause()">⏸停止/再開</button>
-<button class="review" onclick="toggleReviewMode()">復習切替</button>
+  <img id="flag" width="300">
+  <br><br>
+
+  <input type="text" id="answerInput" placeholder="国名を入力">
+  <button onclick="checkAnswer()">答える</button>
+
+  <p id="result"></p>
+  <p id="score"></p>
+
+</div>
+
+<script src="main.js"></script>
 
 <script>
 
@@ -312,131 +311,6 @@ const countries = [
 {jp:"北朝鮮", en:"north korea", code:"kp", continent:"asia"},
 
 ];
-
-let current;
-let score=0;
-let combo=0;
-let timeLeft=10;
-let timer;
-let wrongList=[];
-let reviewMode=false;
-let paused=false;
-let totalAnswers=0;
-let selectedContinent="all";
-
-function normalize(t){ return t.trim().toLowerCase(); }
-
-function updateUI(){
-document.getElementById("score").textContent=score;
-document.getElementById("combo").textContent=combo;
-document.getElementById("reviewCount").textContent=wrongList.length;
-document.getElementById("accuracy").textContent=
-totalAnswers?Math.floor(score/totalAnswers*100):0;
-updateHighScore();
-}
-
-function updateHighScore(){
-let hs=localStorage.getItem("highScore")||0;
-if(score>hs){localStorage.setItem("highScore",score);}
-document.getElementById("highScore").textContent=
-localStorage.getItem("highScore")||0;
-}
-
-function startTimer(){
-if(paused)return;
-document.getElementById("time").textContent=timeLeft;
-timer=setInterval(()=>{
-if(!paused){
-timeLeft--;
-document.getElementById("time").textContent=timeLeft;
-if(timeLeft<=0){clearInterval(timer);skipQuestion(true);}
-}
-},1000);
-}
-
-function nextQuestion(){
-clearInterval(timer);
-paused=false;
-timeLeft=10;
-
-let source;
-if(reviewMode && wrongList.length>0){
-source=wrongList;
-}else{
-source=countries.filter(c=>
-selectedContinent==="all"||c.continent===selectedContinent);
-}
-
-current=source[Math.floor(Math.random()*source.length)];
-document.getElementById("flag").src=
-"https://flagcdn.com/w320/"+current.code+".png";
-
-document.getElementById("answer").value="";
-document.getElementById("result").textContent="";
-startTimer();
-}
-
-function checkAnswer(){
-clearInterval(timer);
-totalAnswers++;
-
-if(
-normalize(document.getElementById("answer").value)===normalize(current.jp)||
-normalize(document.getElementById("answer").value)===normalize(current.en)
-){
-score++;combo++;
-wrongList=wrongList.filter(c=>c.code!==current.code);
-document.getElementById("correctSound").play();
-show("○ 正解！","green");
-}else{
-combo=0;
-addWrong();
-document.getElementById("wrongSound").play();
-show("× 正解:"+current.jp,"red");
-}
-updateUI();
-setTimeout(nextQuestion,1500);
-}
-
-function skipQuestion(timeup=false){
-clearInterval(timer);
-combo=0;
-addWrong();
-show("正解:"+current.jp,"red");
-updateUI();
-setTimeout(nextQuestion,1500);
-}
-
-function addWrong(){
-if(!wrongList.some(c=>c.code===current.code)){
-wrongList.push(current);
-}
-}
-
-function show(t,color){
-let r=document.getElementById("result");
-r.textContent=t;
-r.style.color=color;
-}
-
-function togglePause(){
-paused=!paused;
-if(!paused)startTimer();
-}
-
-function toggleReviewMode(){
-reviewMode=!reviewMode;
-nextQuestion();
-}
-
-function changeContinent(){
-selectedContinent=
-document.getElementById("continentSelect").value;
-nextQuestion();
-}
-
-updateHighScore();
-nextQuestion();
 
 </script>
 
