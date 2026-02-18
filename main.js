@@ -79,25 +79,33 @@ startTimer();
 function checkAnswer(){
 clearInterval(timer);
 totalAnswers++;
-wrongAnswers.push(currentCountry);
+
+let input = normalize(document.getElementById("answer").value);
 
 if(
-normalize(document.getElementById("answer").value)===normalize(current.jp)||
-normalize(document.getElementById("answer").value)===normalize(current.en)
+  input === normalize(current.jp) ||
+  input === normalize(current.en)
 ){
-score++;combo++;
-wrongList=wrongList.filter(c=>c.code!==current.code);
-document.getElementById("correctSound").play();
-show("○ 正解！","green");
+  score++;
+  combo++;
+
+  wrongList = wrongList.filter(c => c.code !== current.code);
+
+  document.getElementById("correctSound").play();
+  show("○ 正解！","green");
+
 }else{
-combo=0;
-addWrong();
-document.getElementById("wrongSound").play();
-show("× 正解:"+current.jp,"red");
+  combo = 0;
+  addWrong();
+
+  document.getElementById("wrongSound").play();
+  show("× 正解:"+current.jp,"red");
 }
+
 updateUI();
 setTimeout(nextQuestion,1500);
 }
+
 
 function skipQuestion(timeup=false){
 clearInterval(timer);

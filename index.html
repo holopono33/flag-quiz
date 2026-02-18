@@ -8,6 +8,7 @@
 <title>国旗クイズ完全版</title>
 
 <style>
+/* ===== 全体背景 ===== */
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,sans-serif;
@@ -15,79 +16,166 @@ body{
   display:flex;
   justify-content:center;
   align-items:center;
-  height:100vh;
+  min-height:100vh;
 }
 
-.app{
+/* ===== 共通カード（ホーム＆ゲーム） ===== */
+.app,
+#homeScreen{
   background:white;
   width:95%;
   max-width:420px;
-  padding:20px;
+  padding:25px;
   border-radius:25px;
   box-shadow:0 15px 30px rgba(0,0,0,0.2);
   text-align:center;
+  animation:fadeIn .3s ease;
+}
+#homeScreen h1{
+  font-size:22px;
 }
 
+/* ===== フェードアニメーション ===== */
+@keyframes fadeIn{
+  from{opacity:0; transform:translateY(10px);}
+  to{opacity:1; transform:translateY(0);}
+}
+
+/* ===== タイトル ===== */
+h1{
+  margin-bottom:20px;
+}
+
+/* ===== 上部バー ===== */
 .topbar{
   display:flex;
   justify-content:space-between;
   font-size:12px;
-  margin-bottom:5px;
+  margin-bottom:4px;
 }
 
-.timer{ color:#e74a3b; font-weight:bold; }
+.timer{
+  color:#e74a3b;
+  font-weight:bold;
+}
 
-.flag{
-  width:200px;
-  margin:10px 0;
+/* ===== 国旗 ===== */
+#flag{
+  width:100%;
+  max-width:280px;
+  height:180px;
+  object-fit:contain;
+  margin:15px 0;
   border-radius:12px;
   box-shadow:0 5px 15px rgba(0,0,0,0.2);
+  background:white;
 }
 
+/* ===== 入力欄 ===== */
 input{
   width:90%;
   padding:10px;
   font-size:16px;
   border-radius:12px;
   border:1px solid #ddd;
-  margin-bottom:8px;
+  margin:6px 0;
 }
 
+/* ===== セレクト ===== */
+select{
+  width:100%;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid #ddd;
+  margin-bottom:15px;
+  font-size:14px;
+}
+
+/* ===== ボタン共通 ===== */
 button{
   width:100%;
-  padding:8px;
-  font-size:14px;
+  padding:10px;
+  font-size:15px;
   border:none;
-  border-radius:12px;
+  border-radius:14px;
   background:#4e73df;
   color:white;
   margin-top:6px;
   cursor:pointer;
+  transition:0.2s;
 }
 
-button.skip{ background:#858796; }
-button.pause{ background:#e74a3b; }
-button.review{ background:#f6c23e; color:black; }
+button:hover{
+  transform:translateY(-2px);
+  opacity:0.9;
+}
 
-.result{
+/* ===== ボタン色分け ===== */
+button.skip{
+  background:#858796;
+}
+
+button.pause{
+  background:#e74a3b;
+}
+
+button.review{
+  background:#f6c23e;
+  color:black;
+}
+
+/* ===== 結果表示 ===== */
+.result,
+#result{
   font-size:16px;
   min-height:35px;
   margin-top:8px;
+  font-weight:bold;
 }
 
-select{
-  width:100%;
-  padding:6px;
-  border-radius:10px;
-  margin-top:6px;
+/* ===== 正答率 ===== */
+#accuracy{
+  font-weight:bold;
 }
+
+/* ===== ホーム専用ボタン強調 ===== */
+#homeScreen button{
+  font-size:16px;
+  padding:14px;
+}
+/* ===== 追加強調 ===== */
+#modeTitle{
+  font-size:18px;
+  font-weight:700;
+  margin:10px 0 5px 0;
+  padding:6px 12px;
+  display:inline-block;
+  background:linear-gradient(90deg,#4e73df,#1cc88a);
+  color:white;
+  border-radius:20px;
+  letter-spacing:1px;
+}
+
+
+
 </style>
 </head>
 <body>
 
 <!-- 🏠 ホーム画面 -->
 <div id="homeScreen">
-  <h1>🌍 世界196カ国 国旗クイズ</h1>
+<h1>🌍 世界196カ国 国旗クイズ</h1>
+
+<select id="continentSelect" onchange="changeContinent()">
+<option value="all">全世界</option>
+<option value="asia">アジア</option>
+<option value="europe">ヨーロッパ</option>
+<option value="africa">アフリカ</option>
+<option value="northamerica">北米</option>
+<option value="southamerica">南米</option>
+<option value="oceania">オセアニア</option>
+</select>
+
 
   <button onclick="startNormal()">▶ 通常モード</button>
   <button onclick="startContinent()">🌎 大陸別モード</button>
@@ -98,21 +186,25 @@ select{
 
 <!-- 🎮 ゲーム画面 -->
 <div id="gameScreen" style="display:none;">
-
-  <button onclick="goHome()">← ホームに戻る</button>
-
-  <h2 id="modeTitle"></h2>
-
-  <img id="flag" width="300">
-  <br><br>
-
-  <input type="text" id="answerInput" placeholder="国名を入力">
-  <button onclick="checkAnswer()">答える</button>
-
-  <p id="result"></p>
-  <p id="score"></p>
-
+<div class="app">
+<div class="topbar">
+<div>スコア:<span id="score">0</span></div>
+<div>🏆:<span id="highScore">0</span></div>
+<div>連続:<span id="combo">0</span></div>
+<div>復習:<span id="reviewCount">0</span></div>
+<div class="timer">⏱<span id="time">10</span></div>
 </div>
+  <button onclick="goHome()">← ホームに戻る</button>
+  <h2 id="modeTitle"></h2>
+  <div>正答率: <span id="accuracy">0</span>%</div>
+  <img id="flag" width="300">
+  <p id="result"></p>
+  <input type="text" id="answer" placeholder="国名を入力">
+  <button onclick="checkAnswer()">答える</button>
+  <button class="skip" onclick="skipQuestion()">次へ</button>
+  <button class="pause" onclick="togglePause()">⏸停止/再開</button>
+
+</div></div>
 
 <script src="main.js"></script>
 
