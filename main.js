@@ -10,6 +10,9 @@ let reviewMode=false;
 let paused=false;
 let totalAnswers=0;
 let selectedContinent="all";
+let isTimeAttack = false;
+let totalTime = 60;
+let timeAttackTimer;
 
 function normalize(t){ return t.trim().toLowerCase(); }
 
@@ -44,7 +47,9 @@ if(timeLeft<=0){clearInterval(timer);skipQuestion(true);}
 function nextQuestion(){ 
 clearInterval(timer);
 paused=false;
-timeLeft=10;
+if(!isTimeAttack){
+  timeLeft = 10;
+}
 
 let source = countries;
 
@@ -72,12 +77,15 @@ document.getElementById("flag").src =
 
 document.getElementById("answer").value="";
 document.getElementById("result").textContent="";
+if(!isTimeAttack){
 startTimer();
 }
-
+}
 
 function checkAnswer(){
+if(!isTimeAttack){
 clearInterval(timer);
+}
 totalAnswers++;
 
 let input = normalize(document.getElementById("answer").value);
@@ -88,6 +96,20 @@ if(
 ){
   score++;
   combo++;
+
+    if(combo === 5){
+    document.getElementById("combo").classList.add("comboGlow");
+    setTimeout(()=>{
+      document.getElementById("combo").classList.remove("comboGlow");
+    },500);
+  }
+
+  if(combo === 10){
+    document.body.classList.add("comboBg");
+    setTimeout(()=>{
+      document.body.classList.remove("comboBg");
+    },500);
+  }
 
   wrongList = wrongList.filter(c => c.code !== current.code);
 
@@ -108,7 +130,9 @@ setTimeout(nextQuestion,1500);
 
 
 function skipQuestion(timeup=false){
+if(!isTimeAttack){
 clearInterval(timer);
+}
 combo=0;
 addWrong();
 show("正解:"+current.jp,"red");
@@ -177,11 +201,87 @@ function startReview() {
 
 function startTimeAttack() {
   gameMode = "timeAttack";
-  document.getElementById("modeTitle").innerText = "1分チャレンジ";
+  isTimeAttack = true;
+  totalTime = 60;
+  score = 0;
+  combo = 0;
+  clearInterval(timer); // 10秒タイマーを完全停止
+
+  document.getElementById("modeTitle").innerText = "🔥 1分チャレンジ";
   showGameScreen();
+  startTimeAttackTimer();
   nextQuestion();
 }
+
+function startTimeAttackTimer(){
+  document.getElementById("time").textContent = totalTime;
+
+  timeAttackTimer = setInterval(() => {
+    totalTime--;
+    document.getElementById("time").textContent = totalTime;
+
+    if(totalTime <= 0){
+      clearInterval(timeAttackTimer);
+      endTimeAttack();
+    }
+  }, 1000);
+}
+
+function endTimeAttack(){
+  clearInterval(timer); // 1問タイマー止める
+  isTimeAttack = false;
+  clearInterval(timeAttackTimer);
+  alert("終了！スコア: " + score);
+
+  goHome();
+}
+
+function getRank(score){
+  if(score>=40) return "S";
+  if(score>=30) return "A";
+  if(score>=20) return "B";
+  return "C";
+}
+
+function endTimeAttack(){
+  clearInterval(timer);
+  clearInterval(timeAttackTimer);
+  isTimeAttack = false;
+
+  let best = localStorage.getItem("taHighScore") || 0;
+
+  if(score > best){
+    localStorage.setItem("taHighScore", score);
+    document.getElementById("timeAttackResult")
+      .classList.add("newRecord");
+  }
+
+  updateTimeAttackDisplay();
+
+  goHome();
+}
+function updateTimeAttackDisplay(){
+  let best = localStorage.getItem("taHighScore") || 0;
+  document.getElementById("taHighScore").textContent = best;
+
+  let rank = getRank(best);
+  let rankEl = document.getElementById("taRank");
+  rankEl.textContent = rank;
+  rankEl.className = "rank"+rank;
+
+  // 仮ランキング（将来オンライン化可能）
+  let ranking = "圏外";
+  if(best>=40) ranking="全国1位級🔥";
+  else if(best>=30) ranking="上位5%";
+  else if(best>=20) ranking="上位20%";
+  else ranking="挑戦者";
+
+  document.getElementById("taRanking").textContent = ranking;
+}
+
+
 
 
 updateHighScore();
 nextQuestion();
+updateTimeAttackDisplay();
