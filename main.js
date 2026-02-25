@@ -17,6 +17,7 @@ let reviewMode=false;
 let paused=false;
 let totalAnswers=0;
 let selectedContinent="all";
+
 let isTimeAttack = false;
 let totalTime = 60;
 let timeAttackTimer;
@@ -46,15 +47,24 @@ localStorage.getItem("highScore")||0;
 }
 
 function startTimer(){
-if(paused)return;
-document.getElementById("time").textContent=timeLeft;
-timer=setInterval(()=>{
-if(!paused){
-timeLeft--;
-document.getElementById("time").textContent=timeLeft;
-if(timeLeft<=0){clearInterval(timer);skipQuestion(true);}
-}
-},1000);
+
+  clearInterval(timer); // ← これ追加
+
+  document.getElementById("time").textContent = timeLeft;
+
+  timer = setInterval(()=>{
+
+    if(!paused){
+      timeLeft--;
+      document.getElementById("time").textContent = timeLeft;
+
+      if(timeLeft <= 0){
+        clearInterval(timer);
+        skipQuestion(true);
+      }
+    }
+
+  },1000);
 }
 
 function nextQuestion(){ 
@@ -128,19 +138,19 @@ if(correct){
   score++;
   combo++;
 
-    if(combo === 3){
-    document.getElementById("combo").classList.add("comboGlow");
-    setTimeout(()=>{
-      document.getElementById("combo").classList.remove("comboGlow");
-    },500);
+  if(combo % 5 === 0){　　//紙吹雪　30コンボ以上は特大
+
+  if(combo >= 30){
+    launchConfetti(3);
+  }
+  else if(combo % 10 === 0){
+    launchConfetti(2);
+  }
+  else{
+    launchConfetti(1);
   }
 
-  if(combo === 10){
-    document.body.classList.add("comboBg");
-    setTimeout(()=>{
-      document.body.classList.remove("comboBg");
-    },500);
-  }
+}
 
   wrongList = wrongList.filter(c => c.code !== current.code);
 
@@ -184,8 +194,21 @@ r.style.color=color;
 }
 
 function togglePause(){
-paused=!paused;
-if(!paused)startTimer();
+
+  paused = !paused;
+
+  if(paused){
+    // 停止
+    clearInterval(timer);
+    clearInterval(timeAttackTimer);
+  }else{
+    // 再開
+    if(isTimeAttack){
+      startTimeAttackTimer();
+    }else{
+      startTimer();
+    }
+  }
 }
 
 function toggleReviewMode(){
@@ -231,13 +254,14 @@ function startReview() {
 }
 
 function startTimeAttack() {
+  clearInterval(timer); // 10秒タイマーを完全停止
+  
   gameMode = "timeAttack";
   isTimeAttack = true;
   totalTime = 60;
   score = 0;
   combo = 0;
-  clearInterval(timer); // 10秒タイマーを完全停止
-
+  
   document.getElementById("modeTitle").innerText = "🔥 1分チャレンジ";
   showGameScreen();
   startTimeAttackTimer();
@@ -245,16 +269,23 @@ function startTimeAttack() {
 }
 
 function startTimeAttackTimer(){
+
+  clearInterval(timeAttackTimer); // ← これ追加
+
   document.getElementById("time").textContent = totalTime;
 
   timeAttackTimer = setInterval(() => {
-    totalTime--;
-    document.getElementById("time").textContent = totalTime;
 
-    if(totalTime <= 0){
-      clearInterval(timeAttackTimer);
-      endTimeAttack();
+    if(!paused){
+      totalTime--;
+      document.getElementById("time").textContent = totalTime;
+
+      if(totalTime <= 0){
+        clearInterval(timeAttackTimer);
+        endTimeAttack();
+      }
     }
+
   }, 1000);
 }
 
@@ -310,7 +341,7 @@ function updateTimeAttackDisplay(){
   document.getElementById("taRanking").textContent = ranking;
 }
 
-function playCorrect(){
+function playCorrect(){    // 正解音
   if(!audioCtx) return;
 
   const osc = audioCtx.createOscillator();
@@ -331,7 +362,7 @@ function playCorrect(){
   osc.stop(audioCtx.currentTime + 0.2);
 }
 
-function playWrong(){
+function playWrong(){　　// 不正解音
   if(!audioCtx) return;
 
   const osc = audioCtx.createOscillator();
@@ -351,7 +382,53 @@ function playWrong(){
   osc.start();
   osc.stop(audioCtx.currentTime + 0.4);
 }
+function launchConfetti(level = 1){　　//紙吹雪
 
+  const canvas = document.getElementById("confettiCanvas");
+  if(!canvas) return;  // ← 保険（これ重要）
+
+  const ctx = canvas.getContext("2d");
+
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  let pieces = [];
+  let amount = level === 1 ? 60 : 200;
+  let animationId;
+  let start = Date.now();
+
+  for(let i=0;i<amount;i++){
+    pieces.push({
+      x: Math.random()*canvas.width,
+      y: Math.random()*canvas.height - canvas.height,
+      size: Math.random()*8+4,
+      speed: Math.random()*3+2,
+      color: `hsl(${Math.random()*360},100%,50%)`,
+      tilt: Math.random()*10-5
+    });
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    pieces.forEach(p=>{
+      ctx.fillStyle = p.color;
+      ctx.fillRect(p.x, p.y, p.size, p.size);
+      p.y += p.speed;
+      p.x += p.tilt;
+    });
+
+    // ★ 1.5秒で強制停止
+    if(Date.now() - start < 1500){
+      animationId = requestAnimationFrame(draw);
+    }else{
+      cancelAnimationFrame(animationId);
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+    }
+  }
+
+  draw();
+}
 
 updateHighScore();
 nextQuestion();
