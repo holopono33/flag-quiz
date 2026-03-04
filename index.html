@@ -220,7 +220,7 @@ button.review{
 
 <!-- 🏠 ホーム画面 -->
 <div id="homeScreen">
-<h1>🌍 FLAG QUIZ-世界196カ国 国旗クイズ-</h1>
+<h1>🌍 FLAG QUIZ<BR>-世界196カ国 国旗クイズ-</h1>
 
 <select id="continentSelect" onchange="changeContinent()">
 <option value="all">全世界/all</option>
@@ -242,7 +242,7 @@ button.review{
   <h3>🏆 1分チャレンジ記録/1-minute challenge record</h3>
   <p>最高スコア/High score: <span id="taHighScore">0</span></p>
   <p>ランク/Rank: <span id="taRank">-</span></p>
-  <!--<p>順位: <span id="taRanking">-</span></p>-->
+  <p>順位: <span id="taRanking">-</span></p>
 </div>
 </div>
 <!-- 🎮 ゲーム画面 -->
@@ -260,7 +260,7 @@ button.review{
   <div>正答率/Accuracy rate: <span id="accuracy">0</span>%</div>
   <img id="flag" width="300">
   <p id="result"></p>
-  <input type="text" id="answer" placeholder="国名を入力">
+  <input type="text" id="answer" placeholder="国名を入力/country name here">
   <button onclick="checkAnswer()">答える/Answer</button>
   <button class="skip" onclick="skipQuestion()">次へ/Skip</button>
   <button class="pause" onclick="togglePause()">⏸停止Stop/再開Start</button>

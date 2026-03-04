@@ -268,26 +268,51 @@ function startTimeAttack() {
   nextQuestion();
 }
 
+//function startTimeAttackTimer(){
+
+ // clearInterval(timeAttackTimer); // ← これ追加
+
+ // document.getElementById("time").textContent = totalTime;
+
+ // timeAttackTimer = setInterval(() => {
+
+   // if(!paused){
+      //totalTime--;
+      //document.getElementById("time").textContent = totalTime;
+
+      //if(totalTime <= 0){
+      //  clearInterval(timeAttackTimer);
+     //   endTimeAttack();
+     // }
+    //}
+
+  //}, 1000);
+//}
+
 function startTimeAttackTimer(){
 
-  clearInterval(timeAttackTimer); // ← これ追加
+  clearInterval(timeAttackTimer);
 
   document.getElementById("time").textContent = totalTime;
 
   timeAttackTimer = setInterval(() => {
 
-    if(!paused){
-      totalTime--;
-      document.getElementById("time").textContent = totalTime;
+    totalTime--;
 
-      if(totalTime <= 0){
-        clearInterval(timeAttackTimer);
-        endTimeAttack();
-      }
+    if(totalTime <= 0){
+      totalTime = 0;
+      document.getElementById("time").textContent = 0;
+
+      clearInterval(timeAttackTimer);
+      endTimeAttack();
+      return;
     }
+
+    document.getElementById("time").textContent = totalTime;
 
   }, 1000);
 }
+
 
 function endTimeAttack(){
   clearInterval(timer); // 1問タイマー止める
@@ -322,6 +347,8 @@ function endTimeAttack(){
 
   goHome();
 }
+
+
 
 function updateTimeAttackDisplay(){
   let best = localStorage.getItem("taHighScore") || 0;
