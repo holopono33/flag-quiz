@@ -410,7 +410,7 @@ function playWrong(){　　// 不正解音
   osc.start();
   osc.stop(audioCtx.currentTime + 0.4);
 }
-function launchConfetti(level = 1){　　//紙吹雪
+function launchConfetti(level = 1){　　//吹雪
 
   const canvas = document.getElementById("confettiCanvas");
   if(!canvas) return;  // ← 保険（これ重要）
