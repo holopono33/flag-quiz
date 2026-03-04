@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#2196f3">
-<title>国旗クイズ完全版</title>
+<title>国旗クイズ/FLAG QUIZ</title>
 
 <style>
 /* ===== 全体背景 ===== */
@@ -220,50 +220,50 @@ button.review{
 
 <!-- 🏠 ホーム画面 -->
 <div id="homeScreen">
-<h1>🌍 世界196カ国 国旗クイズ</h1>
+<h1>🌍 FLAG QUIZ-世界196カ国 国旗クイズ-</h1>
 
 <select id="continentSelect" onchange="changeContinent()">
-<option value="all">全世界</option>
-<option value="asia">アジア</option>
-<option value="europe">ヨーロッパ</option>
-<option value="africa">アフリカ</option>
-<option value="northamerica">北米</option>
-<option value="southamerica">南米</option>
-<option value="oceania">オセアニア</option>
+<option value="all">全世界/all</option>
+<option value="asia">アジア/Asia</option>
+<option value="europe">ヨーロッパ/Europe</option>
+<option value="africa">アフリカ/Africa</option>
+<option value="northamerica">北米/North America</option>
+<option value="southamerica">南米/South America</option>
+<option value="oceania">オセアニア/Oceania</option>
 </select>
 
 
-  <button onclick="startNormal()">▶ 通常モード</button>
-  <button onclick="startContinent()">🌎 大陸別モード</button>
-  <button onclick="startReview()">🔁 復習モード</button>
-  <button onclick="startTimeAttack()">🏆 1分チャレンジ</button>
+  <button onclick="startNormal()">▶ 通常モード/Normal mode</button>
+  <button onclick="startContinent()">🌎 大陸別モード/Continent mode</button>
+  <button onclick="startReview()">🔁 復習モード/Review mode</button>
+  <button onclick="startTimeAttack()">🏆 1分チャレンジ/1-minute challenge</button>
 
 <div id="timeAttackResult" class="timeResultBox">
-  <h3>🏆 1分チャレンジ記録</h3>
-  <p>最高スコア: <span id="taHighScore">0</span></p>
-  <p>ランク: <span id="taRank">-</span></p>
-  <p>順位: <span id="taRanking">-</span></p>
+  <h3>🏆 1分チャレンジ記録/1-minute challenge record</h3>
+  <p>最高スコア/High score: <span id="taHighScore">0</span></p>
+  <p>ランク/Rank: <span id="taRank">-</span></p>
+  <!--<p>順位: <span id="taRanking">-</span></p>-->
 </div>
 </div>
 <!-- 🎮 ゲーム画面 -->
 <div id="gameScreen" style="display:none;">
 <div class="app">
 <div class="topbar">
-<div>スコア:<span id="score">0</span></div>
+<div>Score:<span id="score">0</span></div>
 <div>🏆:<span id="highScore">0</span></div>
-<div>連続:<span id="combo">0</span></div>
-<div>復習:<span id="reviewCount">0</span></div>
+<div>Continue:<span id="combo">0</span></div>
+<div>Review:<span id="reviewCount">0</span></div>
 <div class="timer">⏱<span id="time">10</span></div>
 </div>
-  <button onclick="goHome()">← ホームに戻る</button>
+  <button onclick="goHome()">← ホームに戻る/Back to Home</button>
   <h2 id="modeTitle"></h2>
-  <div>正答率: <span id="accuracy">0</span>%</div>
+  <div>正答率/Accuracy rate: <span id="accuracy">0</span>%</div>
   <img id="flag" width="300">
   <p id="result"></p>
   <input type="text" id="answer" placeholder="国名を入力">
-  <button onclick="checkAnswer()">答える</button>
-  <button class="skip" onclick="skipQuestion()">次へ</button>
-  <button class="pause" onclick="togglePause()">⏸停止/再開</button>
+  <button onclick="checkAnswer()">答える/Answer</button>
+  <button class="skip" onclick="skipQuestion()">次へ/Skip</button>
+  <button class="pause" onclick="togglePause()">⏸停止Stop/再開Start</button>
 
 </div></div>
 
@@ -494,5 +494,12 @@ if ("serviceWorker" in navigator) {
          pointer-events:none;
          z-index:999;">
 </canvas>
+
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js");
+}
+</script>
+
 </body>
 </html>

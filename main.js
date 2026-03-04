@@ -234,21 +234,21 @@ function goHome() {
 
 function startNormal() {
   gameMode = "normal";
-  document.getElementById("modeTitle").innerText = "通常モード";
+  document.getElementById("modeTitle").innerText = "通常モード/Normal mode";
   showGameScreen();
   nextQuestion();
 }
 
 function startContinent() {
   gameMode = "continent";
-  document.getElementById("modeTitle").innerText = "大陸別モード";
+  document.getElementById("modeTitle").innerText = "大陸別モード/Continent mode";
   showGameScreen();
   nextQuestion();
 }
 
 function startReview() {
   gameMode = "review";
-  document.getElementById("modeTitle").innerText = "復習モード";
+  document.getElementById("modeTitle").innerText = "復習モード/Review mode";
   showGameScreen();
   nextQuestion();
 }
@@ -262,7 +262,7 @@ function startTimeAttack() {
   score = 0;
   combo = 0;
   
-  document.getElementById("modeTitle").innerText = "🔥 1分チャレンジ";
+  document.getElementById("modeTitle").innerText = "🔥 1分チャレンジ/1-minute challenge";
   showGameScreen();
   startTimeAttackTimer();
   nextQuestion();
@@ -322,6 +322,7 @@ function endTimeAttack(){
 
   goHome();
 }
+
 function updateTimeAttackDisplay(){
   let best = localStorage.getItem("taHighScore") || 0;
   document.getElementById("taHighScore").textContent = best;
