@@ -324,9 +324,9 @@ function endTimeAttack(){
 }
 
 function getRank(score){
-  if(score>=40) return "S";
-  if(score>=30) return "A";
-  if(score>=20) return "B";
+  if(score>=25) return "S";
+  if(score>=15) return "A";
+  if(score>=8) return "B";
   return "C";
 }
 
@@ -341,10 +341,16 @@ function endTimeAttack(){
     localStorage.setItem("taHighScore", score);
     document.getElementById("timeAttackResult")
       .classList.add("newRecord");
+
+    // ★ 初めてハイスコアを更新したときだけレビュー依頼を出す
+  if (!localStorage.getItem("review_shown")) {
+    navigator.store?.requestStoreReview();
+    localStorage.setItem("review_shown", "1");
+  }
+  
   }
 
   updateTimeAttackDisplay();
-
   goHome();
 }
 
